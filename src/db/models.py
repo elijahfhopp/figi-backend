@@ -15,6 +15,9 @@ class BaseModel(Model):
         database = get_database()
 
 
+DB_CONNECTION = BaseModel._meta.database
+
+
 class ImagesModel(BaseModel):
     id = PrimaryKeyField(index=True)
     path = TextField()
@@ -28,6 +31,6 @@ class FacesModel(BaseModel):
     score = FloatField()
     x = IntegerField()
     y = IntegerField()
-    left = IntegerField()
     top = IntegerField()
+    left = IntegerField()
     embedding = VectorField(dimensions=128)

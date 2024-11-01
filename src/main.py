@@ -2,7 +2,7 @@ import logging
 
 from db.models import FacesModel, ImagesModel
 
-from image.embeddings_generator import FaceExtractor
+from image.face_extractor import FaceExtractor
 from image.tree_crawler import crawl_for_images
 
 from index import ImageIndexer
@@ -36,7 +36,7 @@ FacesModel.create_table(True)
 
 extractor = FaceExtractor(".")
 indexer = ImageIndexer(extractor)
-indexer.index_folder("test_data/images")
+indexer.index_and_load_to_db("test_data/images")
 
 # img = cv2.imread("JJJ.jpg")
 # cv2.imshow("hi", img)

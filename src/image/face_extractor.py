@@ -5,28 +5,6 @@ from typing import List
 import cv2
 import numpy
 
-# Many thanks to the (supurb) OpenCV docs: https://docs.opencv.org/4.x/d0/dd4/tutorial_dnn_face.html
-# Default thresholds/k from there:
-# score_threshold = 0.9
-# nms_threshold = 0.3
-# top_k = 5000
-
-
-@dataclass
-class BoundingBox:
-    left: float
-    top: float
-    x: float
-    y: float
-
-    @classmethod
-    def from_float_array(cls, list: numpy.ndarray):
-        return cls(*list.T)
-
-    def to_float_array(self) -> numpy.ndarray:
-        return numpy.array([self.x, self.y, self.left, self.top])
-
-
 # From OpenCV docs (https://docs.opencv.org/4.x/df/d20/classcv_1_1FaceDetectorYN.html):
 # faces	detection results stored in a 2D cv::Mat of shape [num_faces, 15]
 #     0-1: x, y of bbox top left corner
@@ -42,17 +20,24 @@ class BoundingBox:
 @dataclass
 class DetectedFace:
     score: float
-    bounding_box: BoundingBox
+    x: float
+    y: float
+    top: float
+    left: float
 
     @classmethod
     def from_raw_result(cls, results: numpy.ndarray):
-        return cls(results[14], BoundingBox.from_float_array(results[:4]))
+        return cls(results[14], *results[:4])
 
 
 @dataclass
-class ExtractedFace:
-    face: DetectedFace
+class ExtractedFace(DetectedFace):
     embedding: numpy.ndarray
+
+    @classmethod
+    def from_face(cls, face: DetectedFace, embedding: numpy.ndarray):
+        f = face
+        return cls(f.score, f.x, f.y, f.top, f.left, embedding)
 
 
 class FaceExtractor:
@@ -109,10 +94,8 @@ class FaceExtractor:
         cropped_image = None
         extracted_faces = []
         for face in faces:
-            box = face.bounding_box
-            face_image = self.recognizer.alignCrop(
-                image, box.to_float_array(), cropped_image
-            )
+            bbox = numpy.array([face.x, face.y, face.top, face.left])
+            face_image = self.recognizer.alignCrop(image, bbox, cropped_image)
             embedding = self.recognizer.feature(face_image)
-            extracted_faces.append(ExtractedFace(face, embedding))
+            extracted_faces.append(ExtractedFace.from_face(face, embedding))
         return extracted_faces
