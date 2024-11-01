@@ -27,11 +27,13 @@ def has_image_file_extension(path: str) -> bool:
 
 
 def crawl_for_images(path: str) -> List[str]:
+    log.info(f'Crawler starting at "{path}".')
     start_dir = os.getcwd()
     os.makedirs(path, exist_ok=True)
     os.chdir(path)
     image_paths = walk_tree_for_images("")
     os.chdir(start_dir)
+    log.info(f"Crawler found {len(image_paths)} image files.")
     return image_paths
 
 

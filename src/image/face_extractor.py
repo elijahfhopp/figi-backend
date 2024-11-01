@@ -82,12 +82,12 @@ class FaceExtractor:
         self.detector.setInputSize(size)
         (num_faces, faces) = self.detector.detect(image)
 
-        if num_faces < 1:
+        if num_faces < 1 or faces is None:
             return []
 
         return [DetectedFace.from_raw_result(face) for face in faces]
 
-    # Embeddings shape is (1,128)
+    # Embeddings shape is (128,)
     def extract_face_embeddings(
         self, image: numpy.ndarray, faces: List[DetectedFace]
     ) -> List[ExtractedFace]:
@@ -96,6 +96,9 @@ class FaceExtractor:
         for face in faces:
             bbox = numpy.array([face.x, face.y, face.top, face.left])
             face_image = self.recognizer.alignCrop(image, bbox, cropped_image)
+            # recognizer outputs (1, 128)
             embedding = self.recognizer.feature(face_image)
+            # to (128,)
+            embedding = embedding.reshape(128)
             extracted_faces.append(ExtractedFace.from_face(face, embedding))
         return extracted_faces
