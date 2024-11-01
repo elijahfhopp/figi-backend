@@ -19,6 +19,7 @@ strawberry-graphql = "^0.247.0"
 gql = "^3.5.0"
 cachetools = "^5.5.0"
 python-dotenv = "^1.0.1"
+requests = "^2.32.3"
 
 
 [build-system]

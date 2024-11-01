@@ -1,13 +1,11 @@
 import logging
 import warnings
 
-from figi.config import CONFIG
-IMAGES_FOLDER = CONFIG["FIGI_IMAGES_PATH"]
-print(IMAGES_FOLDER)
-exit()
 import fastapi
 
 import figi.routers as routers
+
+from figi.config import CONFIG
 
 from figi.db.models import FacesModel, ImagesModel
 
@@ -19,9 +17,8 @@ from rich.logging import RichHandler
 from tqdm import TqdmExperimentalWarning
 
 # IMAGES_FOLDER = "test_data/images"
-IMAGES_FOLDER = CONFIG[ConfigKeys.IMAGES_PATH]
-print(IMAGES_FOLDER)
-exit()
+
+IMAGES_FOLDER = CONFIG["FIGI_IMAGES_PATH"]
 
 warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
 logging.basicConfig(
@@ -53,3 +50,4 @@ app = fastapi.FastAPI()
 
 
 app.include_router(routers.graphql, prefix="/graphql")
+app.include_router(routers.images, prefix="/image")
