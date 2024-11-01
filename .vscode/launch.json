@@ -26,6 +26,7 @@
             "name": "Debug Main",
             "type": "debugpy",
             "request": "launch",
+            "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/src/main.py",
             "console": "integratedTerminal"
         }

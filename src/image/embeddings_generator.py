@@ -20,8 +20,11 @@ class BoundingBox:
     y: float
 
     @classmethod
-    def fromFloatArray(cls, list: numpy.ndarray):
+    def from_float_array(cls, list: numpy.ndarray):
         return cls(*list.T)
+
+    def to_float_array(self) -> numpy.ndarray:
+        return numpy.array([self.x, self.y, self.left, self.top])
 
 
 # From OpenCV docs (https://docs.opencv.org/4.x/df/d20/classcv_1_1FaceDetectorYN.html):
@@ -42,26 +45,17 @@ class DetectedFace:
     bounding_box: BoundingBox
 
     @classmethod
-    def fromRawResult(cls, results: numpy.ndarray):
-        return cls(results[14], BoundingBox.fromFloatArray(results[:4]))
+    def from_raw_result(cls, results: numpy.ndarray):
+        return cls(results[14], BoundingBox.from_float_array(results[:4]))
 
 
 @dataclass
-class FaceEntry:
-    index_in_image: int
+class ExtractedFace:
+    face: DetectedFace
     embedding: numpy.ndarray
-    detection_data: List[float]
-
-    @property
-    def bounding_box(self) -> List[float]:
-        return self.detection_data[0:3]
-
-    @property
-    def landmarks(self) -> List[float]:
-        return self.detection_data[3:]
 
 
-class EmbeddingsGenerator:
+class FaceExtractor:
     detector: cv2.FaceDetectorYN
 
     def __init__(
@@ -80,6 +74,17 @@ class EmbeddingsGenerator:
             top_k=5000,
         )
 
+        recognizer_model_path = os.path.join(
+            model_path, "face_recognition_sface_2021dec.onnx"
+        )
+        self.recognizer = cv2.FaceRecognizerSF.create(recognizer_model_path, "")
+
+    def extract_faces(self, image_path) -> List[ExtractedFace]:
+        image = cv2.imread(image_path)
+        size = (image.shape[1], image.shape[0])
+        faces = self.detect_faces(image, size)
+        return self.extract_face_embeddings(image, faces)
+
     # def extract_faces(self, image) -> List[FaceEntry] | None:
     #     size = (image.shape[1], image.shape[0])
     #     self.detector.setInputSize(size)
@@ -95,9 +100,19 @@ class EmbeddingsGenerator:
         if num_faces < 1:
             return []
 
-        return [DetectedFace.fromRawResult(face) for face in faces]
+        return [DetectedFace.from_raw_result(face) for face in faces]
 
-    def detect_faces_in_file(self, image_path) -> List[DetectedFace]:
-        image = cv2.imread(image_path)
-        size = (image.shape[1], image.shape[0])
-        return self.detect_faces(image, size)
+    # Embeddings shape is (1,128)
+    def extract_face_embeddings(
+        self, image: numpy.ndarray, faces: List[DetectedFace]
+    ) -> List[ExtractedFace]:
+        cropped_image = None
+        extracted_faces = []
+        for face in faces:
+            box = face.bounding_box
+            face_image = self.recognizer.alignCrop(
+                image, box.to_float_array(), cropped_image
+            )
+            embedding = self.recognizer.feature(face_image)
+            extracted_faces.append(ExtractedFace(face, embedding))
+        return extracted_faces
