@@ -13,12 +13,12 @@ from peewee import Expression
 
 @ttl_cache(ttl=10)
 def load_image_by_id(id: int) -> ImagesModel:
-    return ImagesModel.get_by_id(id)
+    return ImagesModel.get_or_none(ImagesModel.id == id)
 
 
 @ttl_cache(ttl=10)
 def load_face_by_id(id: int) -> FacesModel:
-    return FacesModel.get_by_id(id)
+    return FacesModel.get_or_none(FacesModel.id == id)
 
 
 @strawberry.type
@@ -64,6 +64,17 @@ class Image(BaseImage):
     def faces(self) -> List[Face]:
         faces = FacesModel.select().where(FacesModel.source_image == self.id)
         return [Face.from_model(face) for face in faces]
+
+
+@strawberry.type
+class ServerInfo:
+    @strawberry.field
+    def imageEntries(self) -> int:
+        return ImagesModel.select().count()
+
+    @strawberry.field
+    def faceEntries(self) -> int:
+        return FacesModel.select().count()
 
 
 @strawberry.enum
@@ -119,6 +130,10 @@ def _resolve_limit(limit: int | None) -> int:
 
 @strawberry.type
 class FigiQuery:
+
+    @strawberry.field
+    def serverInfo(self) -> ServerInfo:
+        return ServerInfo()
 
     @strawberry.field
     def face(self, id: int) -> Optional[Face]:
