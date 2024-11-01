@@ -1,0 +1,13 @@
+# modified from: https://github.com/johannesocean/pgvector-demo
+services:
+  db:
+    hostname: db
+    restart: always
+    image: pgvector/pgvector:pg17
+    ports:
+     - 5432:5432
+    environment:
+      - POSTGRES_DB=figi
+      - POSTGRES_USER=figi
+      - POSTGRES_PASSWORD=testpwd
+      - POSTGRES_HOST_AUTH_METHOD=trust
