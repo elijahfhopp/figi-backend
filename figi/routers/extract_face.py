@@ -12,7 +12,6 @@ extractor = FaceExtractor(CONFIG["FIGI_MODEL_PATH"])
 
 @extract_face.post("/")
 async def get_image(image: UploadFile) -> JSONResponse:
-    print(image)
     image_bytes = numpy.frombuffer(await image.read(), dtype=numpy.uint8)
     faces = extractor.extract_faces_from_array(image_bytes)
     json_faces = [

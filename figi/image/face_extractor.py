@@ -19,15 +19,27 @@ import numpy
 
 @dataclass
 class DetectedFace:
-    score: float
-    x: float
-    y: float
-    width: float
-    height: float
+    markers: numpy.ndarray
 
-    @classmethod
-    def from_raw_result(cls, results: numpy.ndarray):
-        return cls(results[14], *results[:4])
+    @property
+    def score(self):
+        return self.markers[14]
+
+    @property
+    def x(self):
+        return self.markers[0]
+
+    @property
+    def y(self):
+        return self.markers[1]
+
+    @property
+    def width(self):
+        return self.markers[2]
+
+    @property
+    def height(self):
+        return self.markers[3]
 
 
 @dataclass
@@ -36,8 +48,7 @@ class ExtractedFace(DetectedFace):
 
     @classmethod
     def from_face(cls, face: DetectedFace, embedding: numpy.ndarray):
-        f = face
-        return cls(f.score, f.x, f.y, f.width, f.height, embedding)
+        return cls(face.markers, embedding)
 
 
 class FaceExtractor:
@@ -79,14 +90,6 @@ class FaceExtractor:
         faces = self.detect_faces(image, size)
         return self.extract_face_embeddings(image, faces)
 
-    # def extract_faces(self, image) -> List[FaceEntry] | None:
-    #     size = (image.shape[1], image.shape[0])
-    #     self.detector.setInputSize(size)
-    #     faces = self.detector.detect(image)
-    #     # print(num_faces)
-    #     print(repr(faces))
-    #     return None
-    #     # return faces
     def detect_faces(self, image, size) -> List[DetectedFace]:
         self.detector.setInputSize(size)
         (num_faces, faces) = self.detector.detect(image)
@@ -94,19 +97,21 @@ class FaceExtractor:
         if num_faces < 1 or faces is None:
             return []
 
-        return [DetectedFace.from_raw_result(face) for face in faces]
+        return [DetectedFace(face) for face in faces]
 
     # Embeddings shape is (128,)
     def extract_face_embeddings(
         self, image: numpy.ndarray, faces: List[DetectedFace]
     ) -> List[ExtractedFace]:
-        cropped_image = None
+        facecrop = []
         extracted_faces = []
         for face in faces:
             bbox = numpy.array([face.x, face.y, face.width, face.height])
-            face_image = self.recognizer.alignCrop(image, bbox, cropped_image)
+            facecrop.append(bbox)
+            face_image = self.recognizer.alignCrop(image, face.markers)
             # recognizer outputs (1, 128)
             embedding = self.recognizer.feature(face_image)
+            # print(embedding)
             # to (128,)
             embedding = embedding.reshape(128)
             extracted_faces.append(ExtractedFace.from_face(face, embedding))

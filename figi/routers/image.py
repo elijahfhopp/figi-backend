@@ -11,7 +11,6 @@ image = APIRouter()
 
 @image.get("/{image_id}")
 async def get_image(image_id: int) -> Response:
-    print(image_id)
     image_model: ImagesModel = ImagesModel.get_or_none(ImagesModel.id == image_id)
     if not image_model:
         raise HTTPException(
