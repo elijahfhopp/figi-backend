@@ -4,9 +4,9 @@ import time
 from dataclasses import dataclass
 from typing import List
 
-from db.models import DB_CONNECTION, FacesModel, ImagesModel
-from image.face_extractor import ExtractedFace, FaceExtractor
-from image.tree_crawler import crawl_for_images
+from figi.db.models import DB_CONNECTION, FacesModel, ImagesModel
+from figi.image.face_extractor import ExtractedFace, FaceExtractor
+from figi.image.tree_crawler import crawl_for_images
 from peewee import chunked
 from tqdm.rich import tqdm
 

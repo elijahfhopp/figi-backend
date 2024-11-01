@@ -1,4 +1,4 @@
-from db.database import get_database
+from figi.db.database import get_database
 from peewee import (
     FloatField,
     ForeignKeyField,
@@ -19,6 +19,9 @@ DB_CONNECTION = BaseModel._meta.database
 
 
 class ImagesModel(BaseModel):
+    class Meta:
+        db_table = "images"
+
     id = PrimaryKeyField(index=True)
     path = TextField()
     filetype = TextField()
@@ -26,6 +29,9 @@ class ImagesModel(BaseModel):
 
 
 class FacesModel(BaseModel):
+    class Meta:
+        db_table = "faces"
+
     id = PrimaryKeyField(index=True)
     source_image = ForeignKeyField(ImagesModel, backref="faces")
     score = FloatField()

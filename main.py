@@ -1,20 +1,27 @@
 import logging
 import warnings
 
+from figi.config import CONFIG
+IMAGES_FOLDER = CONFIG["FIGI_IMAGES_PATH"]
+print(IMAGES_FOLDER)
+exit()
 import fastapi
 
-from db.models import FacesModel, ImagesModel
+import figi.routers as routers
 
-from image.face_extractor import FaceExtractor
+from figi.db.models import FacesModel, ImagesModel
 
-from index import ImageIndexer
+from figi.image.face_extractor import FaceExtractor
+
+from figi.index.index import ImageIndexer
 from rich.logging import RichHandler
-from strawberry.fastapi import GraphQLRouter
 
 from tqdm import TqdmExperimentalWarning
 
 # IMAGES_FOLDER = "test_data/images"
-IMAGES_FOLDER = "local_test_data"
+IMAGES_FOLDER = CONFIG[ConfigKeys.IMAGES_PATH]
+print(IMAGES_FOLDER)
+exit()
 
 warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
 logging.basicConfig(
@@ -35,11 +42,14 @@ log = logging.getLogger("figi.main")
 ImagesModel.create_table(True)
 FacesModel.create_table(True)
 
-extractor = FaceExtractor(".")
-indexer = ImageIndexer(extractor)
-indexer.index_and_load_to_db(IMAGES_FOLDER)
+UPDATE_INDEX = False
+if UPDATE_INDEX:
+    extractor = FaceExtractor(".")
+    indexer = ImageIndexer(extractor)
+    indexer.index_and_load_to_db(IMAGES_FOLDER)
+
 
 app = fastapi.FastAPI()
 
-graphql_app = GraphQLRouter()
-app.include_router()
+
+app.include_router(routers.graphql, prefix="/graphql")
