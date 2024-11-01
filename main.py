@@ -39,7 +39,7 @@ log = logging.getLogger("figi.main")
 ImagesModel.create_table(True)
 FacesModel.create_table(True)
 
-UPDATE_INDEX = True
+UPDATE_INDEX = False
 if UPDATE_INDEX:
     extractor = FaceExtractor(".")
     indexer = ImageIndexer(extractor)

@@ -1,6 +1,7 @@
+import ast
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import strawberry
 
@@ -8,7 +9,6 @@ from cachetools.func import ttl_cache
 
 from figi.config import CONFIG
 from figi.db.models import FacesModel, ImagesModel
-from peewee import Expression
 
 
 @ttl_cache(ttl=10)
@@ -89,29 +89,27 @@ class VectorSearchType(Enum):
 
 @strawberry.input
 class SearchByFaceEmbedding:
-    startImage: Optional[strawberry.ID] = None
-    searchType: VectorSearchType
-    embedding: List[float]
+    # startImage: Optional[strawberry.ID] = None
+    # searchType: VectorSearchType
+    embedding: str  # For some reason Apollo was convinced my number[] was a String, not [Float!]!.
     threshold: float
     limit: Optional[int] = None
 
 
-def _where_for_search_type(
-    search_type: VectorSearchType, embedding: List[float]
-) -> Expression:
+def _where_for_search_type(search_type: VectorSearchType) -> Any:
     # d = Distance
     d = VectorSearchType
     # f = model Field
     f = FacesModel.embedding
     match search_type:
         case d.L1:
-            return f.l1_distance(embedding)
+            return f.l1_distance
         case d.L2:
-            return f.l2_distance(embedding)
+            return f.l2_distance
         case d.COSINE:
-            return f.cosine_distance(embedding)
+            return f.cosine_distance
         case d.MAX_INNER_PRODUCT:
-            return f.max_inner_product(embedding)
+            return f.max_inner_product
         case _:
             raise ValueError(
                 f'pgvector.peewee does not currently support search type "{search_type}".'
@@ -154,13 +152,14 @@ class FigiQuery:
         pass
 
     @strawberry.field
-    def similarFaces(self, search: SearchByFaceEmbedding) -> List[Face]:
+    def searchFaces(self, search: SearchByFaceEmbedding) -> List[Face]:
+        embedding = ast.literal_eval(search.embedding)
         # exp = expression
-        search_exp = _where_for_search_type(search.searchType, search.embedding)
-        search_exp = search_exp > search.threshold
-        if search.startImage is not None:
-            search_exp = search_exp & (FacesModel.source_image != search.startImage)
-        limit = _resolve_limit(search.limit)
-        faces = FacesModel.select().where(search_exp).limit(limit).execute()
+        faces = (
+            FacesModel.select()
+            .where(FacesModel.embedding.cosine_distance(embedding) < search.threshold)
+            .limit(search.limit)
+            .execute()
+        )
 
         return [Face.from_model(face) for face in faces]
