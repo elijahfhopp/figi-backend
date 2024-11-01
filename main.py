@@ -41,7 +41,7 @@ FacesModel.create_table(True)
 
 UPDATE_INDEX = CONFIG["FIGI_INDEX"]
 if UPDATE_INDEX:
-    extractor = FaceExtractor(".")
+    extractor = FaceExtractor(CONFIG["FIGI_MODEL_PATH"])
     indexer = ImageIndexer(extractor)
     indexer.index_and_load_to_db(IMAGES_FOLDER)
 
