@@ -1,10 +1,10 @@
 from figi.db.database import get_database
 from peewee import (
+    AutoField,
     FloatField,
     ForeignKeyField,
     IntegerField,
     Model,
-    PrimaryKeyField,
     TextField,
 )
 from pgvector.peewee import VectorField
@@ -22,7 +22,7 @@ class ImagesModel(BaseModel):
     class Meta:
         db_table = "images"
 
-    id = PrimaryKeyField(index=True)
+    id = AutoField(index=True)
     path = TextField()
     filetype = TextField()
     size = IntegerField()
@@ -32,11 +32,11 @@ class FacesModel(BaseModel):
     class Meta:
         db_table = "faces"
 
-    id = PrimaryKeyField(index=True)
+    id = AutoField(index=True)
     source_image = ForeignKeyField(ImagesModel, backref="faces")
     score = FloatField()
     x = IntegerField()
     y = IntegerField()
-    top = IntegerField()
-    left = IntegerField()
+    width = IntegerField()
+    height = IntegerField()
     embedding = VectorField(dimensions=128)

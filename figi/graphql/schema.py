@@ -24,7 +24,7 @@ def load_face_by_id(id: int) -> FacesModel:
 @strawberry.type
 @dataclass
 class BaseImage:
-    id: strawberry.ID
+    id: int
     path: str
     filetype: str
     size: int
@@ -39,13 +39,13 @@ class BaseImage:
 @strawberry.type
 @dataclass
 class Face:
-    id: strawberry.ID
+    id: int
     sourceImage: BaseImage
     score: float
     x: int
     y: int
-    top: int
-    left: int
+    width: int
+    height: int
     embedding: List[float]
 
     @classmethod
@@ -55,7 +55,7 @@ class Face:
         image = load_image_by_id(m.source_image)
         source_image = BaseImage.from_model(image)
         embedding = m.embedding.tolist()
-        return cls(m.id, source_image, m.score, m.x, m.y, m.top, m.left, embedding)
+        return cls(m.id, source_image, m.score, m.x, m.y, m.width, m.height, embedding)
 
 
 @strawberry.type
@@ -143,6 +143,11 @@ class FigiQuery:
     @strawberry.field
     def image(self, id: int) -> Optional[Image]:
         return Image.from_model(load_image_by_id(id))
+
+    @strawberry.field
+    def images(self, ids: List[int]) -> List[Image]:
+        images = ImagesModel.select().where(ImagesModel.id.in_(ids)).execute()
+        return [Image.from_model(image) for image in images]
 
     @strawberry.field
     def image_search(self, path: str) -> Optional[Image]:

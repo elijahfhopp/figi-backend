@@ -22,8 +22,8 @@ class DetectedFace:
     score: float
     x: float
     y: float
-    top: float
-    left: float
+    width: float
+    height: float
 
     @classmethod
     def from_raw_result(cls, results: numpy.ndarray):
@@ -37,11 +37,12 @@ class ExtractedFace(DetectedFace):
     @classmethod
     def from_face(cls, face: DetectedFace, embedding: numpy.ndarray):
         f = face
-        return cls(f.score, f.x, f.y, f.top, f.left, embedding)
+        return cls(f.score, f.x, f.y, f.width, f.height, embedding)
 
 
 class FaceExtractor:
     detector: cv2.FaceDetectorYN
+    recognizer: cv2.FaceRecognizerSF
 
     def __init__(
         self,
@@ -70,6 +71,14 @@ class FaceExtractor:
         faces = self.detect_faces(image, size)
         return self.extract_face_embeddings(image, faces)
 
+    def extract_faces_from_array(
+        self, image_bytes: numpy.ndarray
+    ) -> List[ExtractedFace]:
+        image = cv2.imdecode(image_bytes, cv2.IMREAD_COLOR)
+        size = (image.shape[1], image.shape[0])
+        faces = self.detect_faces(image, size)
+        return self.extract_face_embeddings(image, faces)
+
     # def extract_faces(self, image) -> List[FaceEntry] | None:
     #     size = (image.shape[1], image.shape[0])
     #     self.detector.setInputSize(size)
@@ -94,7 +103,7 @@ class FaceExtractor:
         cropped_image = None
         extracted_faces = []
         for face in faces:
-            bbox = numpy.array([face.x, face.y, face.top, face.left])
+            bbox = numpy.array([face.x, face.y, face.width, face.height])
             face_image = self.recognizer.alignCrop(image, bbox, cropped_image)
             # recognizer outputs (1, 128)
             embedding = self.recognizer.feature(face_image)

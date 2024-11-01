@@ -70,7 +70,7 @@ class ImageIndexer:
                 new_faces: List[tuple] = []
                 for e in entry.faces:
                     new_faces.append(
-                        (image.id, e.score, e.x, e.y, e.top, e.left, e.embedding)
+                        (image.id, e.score, e.x, e.y, e.width, e.height, e.embedding)
                     )
 
                 # NOTE: Order-dependant.
