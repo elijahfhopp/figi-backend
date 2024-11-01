@@ -1,2 +1,2 @@
 from figi.routers.graphql import graphql
-from figi.routers.images import images
+from figi.routers.image import image

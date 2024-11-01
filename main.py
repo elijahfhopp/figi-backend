@@ -39,7 +39,7 @@ log = logging.getLogger("figi.main")
 ImagesModel.create_table(True)
 FacesModel.create_table(True)
 
-UPDATE_INDEX = False
+UPDATE_INDEX = True
 if UPDATE_INDEX:
     extractor = FaceExtractor(".")
     indexer = ImageIndexer(extractor)
@@ -50,4 +50,4 @@ app = fastapi.FastAPI()
 
 
 app.include_router(routers.graphql, prefix="/graphql")
-app.include_router(routers.images, prefix="/image")
+app.include_router(routers.image, prefix="/image")

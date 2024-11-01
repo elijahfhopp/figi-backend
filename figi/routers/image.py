@@ -6,10 +6,10 @@ from fastapi import APIRouter, HTTPException, Response
 from figi.config import CONFIG
 from figi.db.models import ImagesModel
 
-images = APIRouter()
+image = APIRouter()
 
 
-@images.get("/{image_id}")
+@image.get("/{image_id}")
 async def get_image(image_id: int) -> Response:
     print(image_id)
     image_model: ImagesModel = ImagesModel.get_or_none(ImagesModel.id == image_id)
