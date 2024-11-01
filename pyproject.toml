@@ -15,6 +15,7 @@ peewee = {extras = ["postgresql"], version = "^3.17.7"}
 rich = "^13.9.3"
 psycopg2-binary = "^2.9.10"
 tqdm = "^4.66.5"
+strawberry-graphql = "^0.247.0"
 
 
 [build-system]

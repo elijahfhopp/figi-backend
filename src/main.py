@@ -1,12 +1,15 @@
 import logging
 import warnings
 
+import fastapi
+
 from db.models import FacesModel, ImagesModel
 
 from image.face_extractor import FaceExtractor
 
 from index import ImageIndexer
 from rich.logging import RichHandler
+from strawberry.fastapi import GraphQLRouter
 
 from tqdm import TqdmExperimentalWarning
 
@@ -35,3 +38,8 @@ FacesModel.create_table(True)
 extractor = FaceExtractor(".")
 indexer = ImageIndexer(extractor)
 indexer.index_and_load_to_db(IMAGES_FOLDER)
+
+app = fastapi.FastAPI()
+
+graphql_app = GraphQLRouter()
+app.include_router()
