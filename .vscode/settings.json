@@ -5,6 +5,7 @@
     "cSpell.words": [
         "fastapi",
         "Figi",
-        "pgvector"
+        "pgvector",
+        "venv"
     ]
 }
